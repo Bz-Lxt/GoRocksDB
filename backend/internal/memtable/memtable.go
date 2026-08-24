@@ -71,8 +71,11 @@ func (m *MemTable) Get(key []byte, snapshot uint64) ([]byte, bool, bool) {
 }
 
 func (m *MemTable) NewIterator() *skiplist.Iterator {
-	if m.Len() == 0 {
-		return nil
-	}
+	// The skiplist iterator handles an empty list correctly
+	// (Front() returns nil, Valid() returns false), so we must
+	// always return a real iterator. Returning nil here causes a
+	// nil-pointer dereference in callers (e.g. Scan) that wrap the
+	// iterator without checking for nil — notably right after a
+	// Flush() when the active memtable is still empty.
 	return m.list.NewIterator()
 }

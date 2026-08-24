@@ -38,6 +38,11 @@ func (db *DB) Scan(start, end []byte, limit int) ([]engine.KV, error) {
 	return db.inner.Scan(start, end, limit)
 }
 
+// ScanPrefix returns all key/value pairs whose key begins with prefix.
+func (db *DB) ScanPrefix(prefix []byte, limit int) ([]engine.KV, error) {
+	return db.inner.ScanPrefix(prefix, limit)
+}
+
 func (db *DB) Write(batch *WriteBatch) error {
 	items := make([]wal.BatchItem, 0, len(batch.items))
 	for _, it := range batch.items {
