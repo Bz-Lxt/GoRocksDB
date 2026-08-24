@@ -37,8 +37,16 @@ func Unpack(p uint64) (seq uint64, typ ValueType) {
 	return p >> 8, ValueType(p & 0xff)
 }
 
+// EncodeInternalKey builds an internal key from userKey.
+//
+// The returned slice is always a fresh allocation and the input userKey is
+// never mutated. This matters for zero-copy decoders that slice key and value
+// from the same backing buffer: appending in place (as append(userKey, ...) did
+// before) would overwrite the bytes immediately following the key — which is
+// where the value lives — with the 8-byte packed seq+type trailer.
 func EncodeInternalKey(userKey []byte, seq uint64, typ ValueType) []byte {
-	buf := append(userKey, make([]byte, PackSize)...)
+	buf := make([]byte, len(userKey)+PackSize)
+	copy(buf, userKey)
 	binary.LittleEndian.PutUint64(buf[len(userKey):], Pack(seq, typ))
 	return buf
 }
